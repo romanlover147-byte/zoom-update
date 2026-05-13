@@ -15,5 +15,5 @@ jobs:
       - name: Upload EXE artifact
         uses: actions/upload-artifact@v4
         with:
-          name: zoom-updater-exe
+          name: zoom-updater
           path: target/x86_64-pc-windows-msvc/release/*.exe
