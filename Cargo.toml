@@ -1,0 +1,21 @@
+[package]
+name = "Messmer"
+version = "0.1.0"
+edition = "2024"
+
+description = "Zoom Updater for Windows"
+authors = ["Your Name <you@example.com>"]
+license = "MIT OR Apache-2.0"
+keywords = ["zoom", "updater", "windows"]
+categories = ["command-line-utilities"]
+[package]
+name = "Messmer"
+version = "0.1.0"
+edition = "2024"
+
+rand = "0.8"
+
+[target.'cfg(windows)'.dependencies]
+winreg = "0.52"
+sha2 = "0.10"
+winres = "0.1"

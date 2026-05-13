@@ -1,0 +1,19 @@
+name: Build Windows EXE
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Build release (MSVC)
+        run: cargo build --release --target x86_64-pc-windows-msvc
+      - name: Upload EXE artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: zoom-updater-exe
+          path: target/x86_64-pc-windows-msvc/release/*.exe
