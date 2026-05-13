@@ -10,6 +10,7 @@ keywords = ["zoom", "updater", "windows"]
 categories = ["command-line-utilities"]
 
 [dependencies]
+eframe = "0.27"
 rand = "0.8"
 
 [target.'cfg(windows)'.dependencies]

