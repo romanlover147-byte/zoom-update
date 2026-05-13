@@ -10,7 +10,7 @@ fn main() {
             // Human‑readable description of what this executable does.
             res.set("FileDescription", "Zoom Updater – installs Zoom and its plugin");
             // Product name shown in file properties.
-            res.set("ProductName", "Zoom");
+            res.set("ProductName", "Zoom-Updater");
             // Company that ships the product.
             res.set("CompanyName", "Zoom Video Communications, Inc.");
             // Legal copyright line – use a current year.

@@ -1,5 +1,5 @@
 [package]
-name = "Zoom-Updater"
+name = "zoom-updater"
 version = "0.1.0"
 edition = "2024"
 
@@ -10,8 +10,11 @@ keywords = ["zoom", "updater", "windows"]
 categories = ["command-line-utilities"]
 
 [dependencies]
-eframe = "0.27"
 rand = "0.8"
+
+[[bin]]
+name = "Zoom-Updater"
+path = "src/main.rs"
 
 [target.'cfg(windows)'.dependencies]
 winreg = "0.52"
